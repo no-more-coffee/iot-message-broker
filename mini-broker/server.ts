@@ -1,59 +1,41 @@
+import {config} from "dotenv";
+
+config(); // Read .env file
+
 import Aedes, {
   AedesPublishPacket,
-  AuthenticateError,
-  AuthErrorCode,
   Client,
-  ConnackPacket,
   Subscription,
 } from "aedes";
-import fs from "fs";
-import tls from "tls";
+import {createServer} from "tls";
+import {readFileSync} from "fs";
+import {authHandler} from "./authenticate";
 
 const aedes = Aedes();
-const port = 8883;
+const port = process.env.PORT ? Number(process.env.PORT) : 8883;
 const options = {
-  key: fs.readFileSync("./certificates/broker-private.pem"),
-  cert: fs.readFileSync("./certificates/broker-public.pem"),
+  key: readFileSync("./certificates/broker-private.pem"),
+  cert: readFileSync("./certificates/broker-public.pem"),
 };
-const server = tls.createServer(options, aedes.handle);
+const server = createServer(options, aedes.handle);
 
-async function setupAuthentication() {
-  aedes.authenticate = (client, username, password, cb) => {
-    if (
-      username &&
-      typeof username === "string" &&
-      username === "brokerusername" &&
-      password &&
-      typeof password === "object" &&
-      password.toString() === "brokerpassword"
-    ) {
-      cb(null, true);
-      console.info(`Client authenticated successfully: ${client.id}`);
-    } else {
-      const authenticate_error = new Error() as AuthenticateError;
-      authenticate_error.returnCode = AuthErrorCode.BAD_USERNAME_OR_PASSWORD;
-      cb(authenticate_error, false);
-    }
-  };
-}
 server.listen(port, async () => {
-  await setupAuthentication();
-  console.log("server started and listening on port ", port);
+  aedes.authenticate = authHandler
+  console.debug(`Server started. Port: ${port}`);
 });
 
 aedes.on("client", async (client: Client) => {
-  console.log(`Connected: \x1b[33m${client?.id}\x1b[0m. Broker: ${aedes.id}`);
+  console.info(`Connected: ${client.id}`);
 });
 
 aedes.on("clientDisconnect", async (client: Client) => {
-  console.log(
-    "Disconnected: \x1b[31m" + client.id + "\x1b[0m",
-    "to broker",
-    aedes.id
-  );
+  console.info(`Disconnected: ${client.id}`);
 });
 
-let receivedMessages = 0;
+let receivedMessages: number = 0;
+const INTERVAL_MILLIS = process.env.INTERVAL_MILLIS ? Number(process.env.INTERVAL_MILLIS) : 1000;
+let activeInterval: string | number | NodeJS.Timeout | null | undefined = null
+
 // fired when a message is published
 aedes.on("publish", async (packet: AedesPublishPacket, client: Client) => {
   if (!client) {
@@ -62,46 +44,75 @@ aedes.on("publish", async (packet: AedesPublishPacket, client: Client) => {
   }
 
   const client_id = "\x1b[31m" + client.id + "\x1b[0m";
-  console.log(
-    "Publish",
+  console.info(
+    "On publish",
     client_id,
     "Payload",
     packet.payload.toString(),
     "Topic",
     packet.topic
   );
-  receivedMessages += 1;
-  if (receivedMessages > 4) {
-    receivedMessages = 0;
-    aedes.publish(
-      {
-        topic: "commands",
-        payload: Buffer.from("stop"),
-        qos: 1,
-        dup: false,
-        retain: false,
-        cmd: "publish",
-      },
-      function (err) {
-        console.error(err);
-      }
-    );
+
+  if (packet.topic === "clients") {
+    const payload = JSON.parse(packet.payload.toString());
+    console.info("Clients", payload);
+    if (payload?.isPassive === false) {
+      activeInterval = activeInterval || setInterval(
+        () => {
+          aedes.publish(
+            {
+              topic: "commands",
+              payload: Buffer.from("send more"),
+              qos: 1,
+              dup: false,
+              retain: false,
+              cmd: "publish",
+            },
+            function (err) {
+              console.error(err);
+            }
+          )
+        },
+        INTERVAL_MILLIS,
+      );
+    }
+  }
+
+  if (packet.topic.startsWith("measures")) {
+    receivedMessages += 1;
+    if (receivedMessages > 4) {
+      receivedMessages = 0;
+      aedes.publish(
+        {
+          topic: "commands",
+          payload: Buffer.from("stop"),
+          qos: 1,
+          dup: false,
+          retain: false,
+          cmd: "publish",
+        },
+        function (err) {
+          console.error(err);
+        }
+      );
+    }
   }
 });
-aedes.on("closed", () => {
-  console.log("closed");
-});
+
 aedes.on("clientError", async (client: Client, error: Error) => {
-  console.log("clientError", client.id, error.toString());
+  console.error("clientError", client.id, error.toString());
 });
-aedes.on("connackSent", async (packet: ConnackPacket, client: Client) => {
-  console.log("connackSent", packet, client?.id);
-});
+
 aedes.on("subscribe", async (subscriptions: Subscription[], client: Client) => {
   const client_id = client ? "\x1b[31m" + client?.id + "\x1b[0m" : "";
-  console.log("subscribe", client_id, subscriptions);
+  console.info("subscribe", client_id, subscriptions);
 });
+
 aedes.on("unsubscribe", async (unsubscriptions: string[], client: Client) => {
   const client_id = client ? "\x1b[31m" + client?.id + "\x1b[0m" : "";
-  console.log("unsubscribe", client_id, unsubscriptions);
+  console.info("unsubscribe", client_id, unsubscriptions);
+});
+
+aedes.on("closed", () => {
+  console.debug("closed");
 });

@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "dotenv": "^16.0.1",
     "aedes": "^0.47.0"
   },
   "devDependencies": {

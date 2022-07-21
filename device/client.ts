@@ -1,78 +1,66 @@
-import * as mqtt from "mqtt";
-require("dotenv").config();
+import {config} from "dotenv";
+import {
+  connect as mqttConnect,
+  IConnackPacket,
+  IDisconnectPacket,
+  ISubscriptionGrant,
+  MqttClient
+} from "mqtt";
+import {ActiveDevice} from "./active-device";
+import {BaseDevice} from "./basic-device";
+import {PassiveDevice} from "./passive-device";
 
-let client: mqtt.MqttClient = mqtt.connect({
-  port: process.env.PORT ? Number(process.env.PORT) : 8883,
-  host: "localhost",
-  rejectUnauthorized: false,
+config();
+
+const device: BaseDevice = (process.env.IS_PASSIVE?.toLowerCase() === 'true')
+  ? new PassiveDevice()
+  : new ActiveDevice()
+
+let client: MqttClient = mqttConnect({
   protocol: "mqtts",
-  username: "brokerusername",
-  password: "brokerpassword",
+  host: process.env.HOST || "localhost",
+  port: process.env.PORT ? Number(process.env.PORT) : 8883,
+  username: process.env.USERNAME || "brokerusername",
+  password: process.env.PASSWORD || "brokerpassword",
+  rejectUnauthorized: false,
 });
-const is_passive = process.env.IS_PASSIVE
-  ? Boolean(process.env.IS_PASSIVE)
-  : false;
-let nIntervId: string | number | NodeJS.Timeout | null | undefined;
 
-client.on("connect", (packet: mqtt.IConnackPacket) => {
-  console.log("connect");
+client.on("connect", (packet: IConnackPacket) => {
+  console.debug("Connect");
 
   client.subscribe(
     "commands",
-    (err: Error, granted: mqtt.ISubscriptionGrant[]) => {
-      console.log("subscribe");
+    (err: Error, granted: ISubscriptionGrant[]) => {
+      console.debug("Subscribe to commands");
       if (!err) {
-        client.publish("clients", "HELLO");
+        client.publish("clients", JSON.stringify({isPassive: device.isPassive}));
       } else {
         console.error(err);
       }
     }
   );
 
-  if (is_passive) {
-    console.log("is_passive");
-    if (!nIntervId) {
-      nIntervId = setInterval(() => sendMockMeasure(client), 1000);
-    }
-  } else {
-  }
+  device.onConnect(client)
 });
 
-function sendMockMeasure(client: mqtt.MqttClient): void {
-  const clientType = is_passive ? "passive" : "active";
-  const measure = Math.floor(Math.random() * 100);
-  const message = { "some-measure": measure };
-  client.publish(`measures/${clientType}/random`, JSON.stringify(message));
-}
 
 client.on("message", (topic: string, payload: Buffer) => {
-  console.log("message", payload.toString());
-  if (topic === "commands") {
-    if (nIntervId) {
-      clearInterval(nIntervId);
-      nIntervId = null;
-    }
-  }
-  // client.unsubscribe("presence");
-  // client.end();
+  const message = payload.toString();
+  console.log("Received message", message);
+  device.onMessage(client, topic, payload)
 });
 
-client.on("disconnect", (packet: mqtt.IDisconnectPacket) => {
-  console.log("disconnect", packet);
-  if (nIntervId) {
-    clearInterval(nIntervId);
-    nIntervId = null;
-  }
+client.on("disconnect", (packet: IDisconnectPacket) => {
+  console.debug("Disconnect", packet);
+  device.onDisconnect()
 });
 
 client.on("error", (error: Error) => {
-  console.log("error", error);
+  console.error("Error", error);
 });
 
 client.on("close", () => {
-  console.log("close");
-});
-
-client.on("end", () => {
-  console.log("end");
+  console.debug("Close");
+  client.unsubscribe("commands");
+  client.end();
 });
