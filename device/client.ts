@@ -1,16 +1,12 @@
 import {config} from "dotenv";
-import {
-  connect as mqttConnect,
-  IConnackPacket,
-  IDisconnectPacket,
-  ISubscriptionGrant,
-  MqttClient
-} from "mqtt";
-import {ActiveDevice} from "./active-device";
-import {BaseDevice} from "./basic-device";
-import {PassiveDevice} from "./passive-device";
 
 config();
+
+import {connect as mqttConnect, IConnackPacket, MqttClient} from "mqtt";
+import {ActiveDevice} from "./active-device";
+import {PassiveDevice} from "./passive-device";
+import {BaseDevice} from "./base-device";
+
 
 const device: BaseDevice = (process.env.IS_PASSIVE?.toLowerCase() === 'true')
   ? new PassiveDevice()
@@ -26,16 +22,18 @@ let client: MqttClient = mqttConnect({
 });
 
 client.on("connect", (packet: IConnackPacket) => {
-  console.debug("Connect");
+  console.debug("Connected");
 
   client.subscribe(
     "commands",
-    (err: Error, granted: ISubscriptionGrant[]) => {
+    (err, _granted) => {
       console.debug("Subscribe to commands");
-      if (!err) {
-        client.publish("clients", JSON.stringify({isPassive: device.isPassive}));
-      } else {
+      if (err) {
         console.error(err);
+      } else {
+        client.publish("clients", JSON.stringify({
+          isPassive: device.isPassive,
+        }));
       }
     }
   );
@@ -43,16 +41,8 @@ client.on("connect", (packet: IConnackPacket) => {
   device.onConnect(client)
 });
 
-
 client.on("message", (topic: string, payload: Buffer) => {
-  const message = payload.toString();
-  console.log("Received message", message);
   device.onMessage(client, topic, payload)
-});
-
-client.on("disconnect", (packet: IDisconnectPacket) => {
-  console.debug("Disconnect", packet);
-  device.onDisconnect()
 });
 
 client.on("error", (error: Error) => {
@@ -61,6 +51,7 @@ client.on("error", (error: Error) => {
 
 client.on("close", () => {
   console.debug("Close");
+  device.onClose()
   client.unsubscribe("commands");
   client.end();
 });

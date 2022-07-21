@@ -7,5 +7,5 @@ export interface BaseDevice {
 
   onMessage(client: MqttClient, topic: string, payload: Buffer): void
 
-  onDisconnect(): void;
+  onClose(): void;
 }

@@ -1,6 +1,8 @@
 import {MqttClient} from "mqtt";
-import {BaseDevice} from "./basic-device";
 import {probe} from "./measures";
+import {BaseDevice} from "./base-device";
+
+const COMMAND_SEND_MORE = JSON.stringify({"command": "please, send more"});
 
 export class ActiveDevice implements BaseDevice {
   isPassive = false;
@@ -13,12 +15,13 @@ export class ActiveDevice implements BaseDevice {
       return
 
     const message = payload.toString();
-    if (message === "send more") {
+    if (message === COMMAND_SEND_MORE) {
+      console.log("Received command", message);
       const measure = probe()
-      client.publish(`measures/active/random`, measure);
+      client.publish(`measures/active/random`, JSON.stringify(measure));
     }
   }
 
-  onDisconnect(): void {
+  onClose(): void {
   }
 }

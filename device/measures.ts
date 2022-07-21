@@ -1,6 +1,4 @@
-
-export function probe(): string {
+export function probe(): object {
   const measure = Math.floor(Math.random() * 100);
-  const message = {"some-measure": measure};
-  return JSON.stringify(message)
+  return {"some-measure": measure};
 }

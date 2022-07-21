@@ -14,13 +14,12 @@ export const authHandler = (
   if (credentialsAreValid(username, password)
   ) {
     done(null, true);
-    console.debug(`Client authenticated successfully: ${client.id}`);
+    console.debug(`Authenticated successfully: ${client.id}`);
   } else {
     const authenticate_error = new Error() as AuthenticateError;
     authenticate_error.returnCode = AuthErrorCode.BAD_USERNAME_OR_PASSWORD;
     done(authenticate_error, false);
   }
-
 }
 
 function credentialsAreValid(username: Readonly<string>, password: Readonly<Buffer>): boolean {
