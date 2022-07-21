@@ -2,8 +2,8 @@ import {Client} from "aedes/types/client";
 import {AuthenticateError} from "aedes/types/instance";
 import {AuthErrorCode} from "aedes";
 
-const validUsername = process.env.USERNAME || "brokerusername";
-const validPassword = process.env.PASSWORD || "brokerpassword";
+const validUsername = process.env.USERNAME || "broker_username";
+const validPassword = process.env.PASSWORD || "broker_password";
 
 export const authHandler = (
   client: Client,

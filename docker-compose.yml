@@ -1,0 +1,81 @@
+version: "3.9"
+
+services:
+  mini-broker:
+    build: ./mini-broker
+    command: [ node, ./dist/server.js ]
+    working_dir: /app
+    restart: always
+    env_file:
+      - mini-broker/production.env
+    networks:
+      - laboratory
+    ports:
+      - "8883:8883"
+
+  device-passive-a:
+    build: ./device
+    command: [ node, ./dist/client.js ]
+    working_dir: /app
+    depends_on:
+      - mini-broker
+    restart: always
+    env_file:
+      - device/production.env
+    environment:
+      - IS_PASSIVE=true
+#      - HOST=laboratory
+      - HOST=host.docker.internal
+    networks:
+      - laboratory
+
+  device-passive-b:
+    build: ./device
+    command: [ node, ./dist/client.js ]
+    working_dir: /app
+    depends_on:
+      - mini-broker
+    restart: always
+    env_file:
+      - device/production.env
+    environment:
+      - IS_PASSIVE=true
+#      - HOST=laboratory
+      - HOST=host.docker.internal
+    networks:
+      - laboratory
+
+  device-active-a:
+    build: ./device
+    command: [ node, ./dist/client.js ]
+    working_dir: /app
+    depends_on:
+      - mini-broker
+    restart: always
+    env_file:
+      - device/production.env
+    environment:
+      - IS_PASSIVE=false
+#      - HOST=laboratory
+      - HOST=host.docker.internal
+    networks:
+      - laboratory
+
+  device-active-b:
+    build: ./device
+    command: [ node, ./dist/client.js ]
+    working_dir: /app
+    depends_on:
+      - mini-broker
+    restart: always
+    env_file:
+      - device/production.env
+    environment:
+      - IS_PASSIVE=false
+#      - HOST=laboratory
+      - HOST=host.docker.internal
+    networks:
+      - laboratory
+
+networks:
+  laboratory:

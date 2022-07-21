@@ -16,8 +16,8 @@ let client: MqttClient = mqttConnect({
   protocol: "mqtts",
   host: process.env.HOST || "localhost",
   port: process.env.PORT ? Number(process.env.PORT) : 8883,
-  username: process.env.USERNAME || "brokerusername",
-  password: process.env.PASSWORD || "brokerpassword",
+  username: process.env.USERNAME || "broker_username",
+  password: process.env.PASSWORD || "broker_password",
   rejectUnauthorized: false,
 });
 
