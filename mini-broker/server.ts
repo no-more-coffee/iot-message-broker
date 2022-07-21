@@ -53,20 +53,39 @@ aedes.on("clientDisconnect", async (client: Client) => {
   );
 });
 
+let receivedMessages = 0;
 // fired when a message is published
 aedes.on("publish", async (packet: AedesPublishPacket, client: Client) => {
-  if (client) {
-    const client_id = "\x1b[31m" + client.id + "\x1b[0m";
-    console.log(
-      "Publish",
-      client_id,
-      "Payload",
-      packet.payload.toString(),
-      "Topic",
-      packet.topic
+  if (!client) {
+    console.debug("event:", packet.topic, packet.payload.toString());
+    return;
+  }
+
+  const client_id = "\x1b[31m" + client.id + "\x1b[0m";
+  console.log(
+    "Publish",
+    client_id,
+    "Payload",
+    packet.payload.toString(),
+    "Topic",
+    packet.topic
+  );
+  receivedMessages += 1;
+  if (receivedMessages > 4) {
+    receivedMessages = 0;
+    aedes.publish(
+      {
+        topic: "commands",
+        payload: Buffer.from("stop"),
+        qos: 1,
+        dup: false,
+        retain: false,
+        cmd: "publish",
+      },
+      function (err) {
+        console.error(err);
+      }
     );
-  } else {
-    console.log("event:", packet.topic, packet.payload.toString());
   }
 });
 aedes.on("closed", () => {
