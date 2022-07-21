@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "aedes": "^0.47.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.6"
+  }
+}
