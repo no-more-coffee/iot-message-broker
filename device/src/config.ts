@@ -1,4 +1,4 @@
-import {config} from "dotenv";
+import { config } from "dotenv";
 
 config(); // Read .env file
 
@@ -10,5 +10,4 @@ export const CONFIG = {
   device_name: process.env.DEVICE_NAME || "random-name",
   is_passive: process.env.IS_PASSIVE?.toLowerCase() === "true",
   interval_millis: process.env.INTERVAL_MILLIS ? Number(process.env.INTERVAL_MILLIS) : 1000,
-}
-
+};

@@ -1,11 +1,11 @@
-import {MqttClient} from "mqtt";
+import { MqttClient } from "mqtt";
 
 export interface BaseDevice {
-  isPassive: boolean
+  isPassive: boolean;
 
-  onConnect(client: MqttClient): void
+  onConnect(client: MqttClient): void;
 
-  onMessage(client: MqttClient, topic: string, payload: Buffer): void
+  onMessage(client: MqttClient, topic: string, payload: Buffer): void;
 
   onClose(): void;
 }

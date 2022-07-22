@@ -66,4 +66,4 @@ docker compose up
 - [x] Validate device messages using any form of checksum.
 - [ ] The Mini-Connector accepts user-input to interact with the devices.
 - [ ] The Mini-Connector manages the process-lifecycle of the devices. It can start and stop
-  devices dynamically.
+      devices dynamically.

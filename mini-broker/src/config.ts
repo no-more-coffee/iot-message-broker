@@ -1,4 +1,4 @@
-import {config} from "dotenv";
+import { config } from "dotenv";
 
 config(); // Read .env file
 
@@ -7,4 +7,4 @@ export const CONFIG = {
   username: process.env.USERNAME || "broker-username",
   password: process.env.PASSWORD || "broker-password",
   interval_millis: process.env.INTERVAL_MILLIS ? Number(process.env.INTERVAL_MILLIS) : 1000,
-}
+};

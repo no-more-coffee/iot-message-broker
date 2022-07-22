@@ -1,8 +1,7 @@
-import {Client} from "aedes/types/client";
-import {AuthenticateError} from "aedes/types/instance";
-import {AuthErrorCode} from "aedes";
-import {CONFIG} from "./config";
-
+import { Client } from "aedes/types/client";
+import { AuthenticateError } from "aedes/types/instance";
+import { AuthErrorCode } from "aedes";
+import { CONFIG } from "./config";
 
 export const authHandler = (
   client: Client,
@@ -10,8 +9,7 @@ export const authHandler = (
   password: Readonly<Buffer>,
   done: (error: AuthenticateError | null, success: boolean | null) => void
 ) => {
-  if (credentialsAreValid(username, password)
-  ) {
+  if (credentialsAreValid(username, password)) {
     done(null, true);
     console.debug(`Authenticated successfully: ${client.id}`);
   } else {
@@ -19,12 +17,12 @@ export const authHandler = (
     authenticate_error.returnCode = AuthErrorCode.BAD_USERNAME_OR_PASSWORD;
     done(authenticate_error, false);
   }
-}
+};
 
 function credentialsAreValid(username: Readonly<string>, password: Readonly<Buffer>): boolean {
   try {
-    return username === CONFIG.username && password.toString() === CONFIG.password
+    return username === CONFIG.username && password.toString() === CONFIG.password;
   } catch (e) {
-    return false
+    return false;
   }
 }
