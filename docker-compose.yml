@@ -6,12 +6,12 @@ services:
     command: [ node, ./dist/server.js ]
     working_dir: /app
     restart: always
+    ports:
+      - "8883:8883"
     env_file:
       - mini-broker/production.env
     networks:
       - laboratory
-    ports:
-      - "8883:8883"
 
   device-passive-a:
     build: ./device
@@ -23,10 +23,9 @@ services:
     env_file:
       - device/production.env
     environment:
-      - DEVICE_NAME=device-passive-a
+      - DEVICE_NAME=device-passive-A
       - IS_PASSIVE=true
-#      - HOST=laboratory
-      - HOST=host.docker.internal
+      - HOST=laboratory
     networks:
       - laboratory
 
@@ -40,10 +39,9 @@ services:
     env_file:
       - device/production.env
     environment:
-      - DEVICE_NAME=device-passive-a
+      - DEVICE_NAME=device-passive-B
       - IS_PASSIVE=true
-#      - HOST=laboratory
-      - HOST=host.docker.internal
+      - HOST=laboratory
     networks:
       - laboratory
 
@@ -57,10 +55,9 @@ services:
     env_file:
       - device/production.env
     environment:
-      - DEVICE_NAME=device-passive-a
+      - DEVICE_NAME=device-active-A
       - IS_PASSIVE=false
-#      - HOST=laboratory
-      - HOST=host.docker.internal
+      - HOST=laboratory
     networks:
       - laboratory
 
@@ -74,10 +71,9 @@ services:
     env_file:
       - device/production.env
     environment:
-      - DEVICE_NAME=device-passive-a
+      - DEVICE_NAME=device-active-B
       - IS_PASSIVE=false
-#      - HOST=laboratory
-      - HOST=host.docker.internal
+      - HOST=laboratory
     networks:
       - laboratory
 
