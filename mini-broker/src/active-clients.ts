@@ -1,6 +1,6 @@
 import {Aedes, Client} from "aedes";
+import {CONFIG} from "./config";
 
-const INTERVAL_MILLIS = process.env.INTERVAL_MILLIS ? Number(process.env.INTERVAL_MILLIS) : 1000;
 const activeDevices = new Set();
 let activeInterval: string | number | NodeJS.Timeout | null | undefined = null
 
@@ -26,7 +26,7 @@ export function onNewActiveDevice(aedes: Aedes, client: Client) {
         }
       )
     },
-    INTERVAL_MILLIS,
+    CONFIG.interval_millis,
   )
 }
 

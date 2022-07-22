@@ -23,6 +23,7 @@ services:
     env_file:
       - device/production.env
     environment:
+      - DEVICE_NAME=device-passive-a
       - IS_PASSIVE=true
 #      - HOST=laboratory
       - HOST=host.docker.internal
@@ -39,6 +40,7 @@ services:
     env_file:
       - device/production.env
     environment:
+      - DEVICE_NAME=device-passive-a
       - IS_PASSIVE=true
 #      - HOST=laboratory
       - HOST=host.docker.internal
@@ -55,6 +57,7 @@ services:
     env_file:
       - device/production.env
     environment:
+      - DEVICE_NAME=device-passive-a
       - IS_PASSIVE=false
 #      - HOST=laboratory
       - HOST=host.docker.internal
@@ -71,6 +74,7 @@ services:
     env_file:
       - device/production.env
     environment:
+      - DEVICE_NAME=device-passive-a
       - IS_PASSIVE=false
 #      - HOST=laboratory
       - HOST=host.docker.internal

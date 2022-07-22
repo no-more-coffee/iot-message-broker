@@ -1,23 +1,17 @@
-import {config} from "dotenv";
-
-config();
-
 import {connect as mqttConnect, IConnackPacket, MqttClient} from "mqtt";
 import {ActiveDevice} from "./active-device";
 import {PassiveDevice} from "./passive-device";
 import {BaseDevice} from "./base-device";
+import {CONFIG} from "./config";
 
 
-const device: BaseDevice = (process.env.IS_PASSIVE?.toLowerCase() === 'true')
+const device: BaseDevice = (CONFIG.is_passive)
   ? new PassiveDevice()
   : new ActiveDevice()
 
 let client: MqttClient = mqttConnect({
+  ...CONFIG,
   protocol: "mqtts",
-  host: process.env.HOST || "localhost",
-  port: process.env.PORT ? Number(process.env.PORT) : 8883,
-  username: process.env.USERNAME || "broker_username",
-  password: process.env.PASSWORD || "broker_password",
   rejectUnauthorized: false,
 });
 

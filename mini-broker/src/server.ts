@@ -1,25 +1,21 @@
-import {config} from "dotenv";
-
-config(); // Read .env file
-
 import Aedes, {AedesPublishPacket, Client, Subscription,} from "aedes";
 import {createServer} from "tls";
 import {readFileSync} from "fs";
 import {authHandler} from "./authenticate";
 import {onDeviceDisconnected, onNewActiveDevice} from "./active-clients";
+import {CONFIG} from "./config";
 
 
 const aedes = Aedes();
-const port = process.env.PORT ? Number(process.env.PORT) : 8883;
 const options = {
   key: readFileSync("./certificates/broker-private.pem"),
   cert: readFileSync("./certificates/broker-public.pem"),
 };
 const server = createServer(options, aedes.handle);
 
-server.listen(port, async () => {
+server.listen(CONFIG.port, async () => {
   aedes.authenticate = authHandler
-  console.debug(`Server started. Port: ${port}`);
+  console.debug(`Server started. Port: ${CONFIG.port}`);
 });
 
 aedes.on("client", async (client: Client) => {
@@ -42,7 +38,7 @@ aedes.on("publish", async (packet: AedesPublishPacket, client: Client) => {
     const payload = JSON.parse(data);
     const isPassive = payload?.isPassive
     console.log("New client", isPassive, payload);
-    if (typeof isPassive === "boolean" && isPassive === false) {
+    if (typeof isPassive === "boolean" && !isPassive) {
       onNewActiveDevice(aedes, client)
     }
   }

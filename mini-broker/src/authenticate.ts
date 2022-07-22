@@ -1,9 +1,8 @@
 import {Client} from "aedes/types/client";
 import {AuthenticateError} from "aedes/types/instance";
 import {AuthErrorCode} from "aedes";
+import {CONFIG} from "./config";
 
-const validUsername = process.env.USERNAME || "broker_username";
-const validPassword = process.env.PASSWORD || "broker_password";
 
 export const authHandler = (
   client: Client,
@@ -24,7 +23,7 @@ export const authHandler = (
 
 function credentialsAreValid(username: Readonly<string>, password: Readonly<Buffer>): boolean {
   try {
-    return username === validUsername && password.toString() === validPassword
+    return username === CONFIG.username && password.toString() === CONFIG.password
   } catch (e) {
     return false
   }

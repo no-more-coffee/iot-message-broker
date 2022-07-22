@@ -12,7 +12,4 @@ COPY . .
 ###
 FROM base as build
 
-WORKDIR /app
-
-ENV NODE_PATH=./dist
 RUN npm run build
