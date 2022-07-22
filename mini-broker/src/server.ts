@@ -4,6 +4,7 @@ import {readFileSync} from "fs";
 import {authHandler} from "./authenticate";
 import {onDeviceDisconnected, onNewActiveDevice} from "./active-clients";
 import {CONFIG} from "./config";
+import {unpackMessage} from "./message";
 
 
 const aedes = Aedes();
@@ -24,20 +25,18 @@ aedes.on("client", async (client: Client) => {
 
 // fired when a message is published
 aedes.on("publish", async (packet: AedesPublishPacket, client: Client) => {
-  let data = packet.payload.toString();
-
   if (!client) {
     // Ignore broker own messages
-    console.debug("...", packet.topic, data);
+    console.debug("...", packet.topic);
     return;
   }
 
+  let data = unpackMessage(packet.payload);
   console.log("On publish", client.id, "Payload", data, "Topic", packet.topic);
 
   if (packet.topic === "clients") {
-    const payload = JSON.parse(data);
-    const isPassive = payload?.isPassive
-    console.log("New client", isPassive, payload);
+    const isPassive = data?.isPassive
+    console.log("New client", isPassive, data);
     if (typeof isPassive === "boolean" && !isPassive) {
       onNewActiveDevice(aedes, client)
     }

@@ -2,6 +2,7 @@ import {MqttClient} from "mqtt";
 import {probe} from "./measures";
 import {BaseDevice} from "./base-device";
 import {CONFIG} from "./config";
+import {packMessage} from "./message";
 
 let passiveInterval: string | number | NodeJS.Timeout | null | undefined = null
 
@@ -12,7 +13,7 @@ export class PassiveDevice implements BaseDevice {
     passiveInterval = passiveInterval || setInterval(
       () => {
         const measure = probe()
-        client.publish(`measures/passive/${CONFIG.device_name}`, JSON.stringify(measure));
+        client.publish(`measures/passive/${CONFIG.device_name}`, packMessage(measure));
       },
       CONFIG.interval_millis,
     );

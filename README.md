@@ -63,7 +63,7 @@ docker compose up
 - [x] Mini-Connector should dynamically detect available devices.
 - [x] Use TypeScript.
 - [x] Establish a secure connection between devices and the Mini-Connector.
+- [x] Validate device messages using any form of checksum.
 - [ ] The Mini-Connector accepts user-input to interact with the devices.
 - [ ] The Mini-Connector manages the process-lifecycle of the devices. It can start and stop
   devices dynamically.
-- [ ] Validate device messages using any form of checksum.

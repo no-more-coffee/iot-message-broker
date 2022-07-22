@@ -3,6 +3,7 @@ import {ActiveDevice} from "./active-device";
 import {PassiveDevice} from "./passive-device";
 import {BaseDevice} from "./base-device";
 import {CONFIG} from "./config";
+import {packMessage} from "./message";
 
 
 const device: BaseDevice = (CONFIG.is_passive)
@@ -25,7 +26,7 @@ client.on("connect", (packet: IConnackPacket) => {
       if (err) {
         console.error(err);
       } else {
-        client.publish("clients", JSON.stringify({
+        client.publish("clients", packMessage({
           isPassive: device.isPassive,
         }));
       }

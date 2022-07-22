@@ -1,5 +1,6 @@
 import {Aedes, Client} from "aedes";
 import {CONFIG} from "./config";
+import {packMessage} from "./message";
 
 const activeDevices = new Set();
 let activeInterval: string | number | NodeJS.Timeout | null | undefined = null
@@ -13,7 +14,7 @@ export function onNewActiveDevice(aedes: Aedes, client: Client) {
       aedes.publish(
         {
           topic: "commands",
-          payload: Buffer.from(JSON.stringify(command)),
+          payload: packMessage(command),
           qos: 1,
           dup: false,
           retain: false,
