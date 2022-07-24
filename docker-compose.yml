@@ -7,7 +7,8 @@ services:
     working_dir: /app
     restart: always
     ports:
-      - "8883:8883"
+      - "8883:${PORT:-8883}"
+      - "8080:${WS_PORT:-8080}"
     env_file:
       - mini-broker/production.env
     networks:

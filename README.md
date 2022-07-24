@@ -55,6 +55,34 @@ Run:
 docker compose up
 ```
 
+# User interaction
+
+Prerequisites:
+
+- node
+- ts-node
+
+List connected devices:
+
+```
+# From `mini-broker` directory
+ts-node src/ws-client.ts list
+```
+
+Disable active device probing:
+
+```
+# From `mini-broker` directory
+ts-node src/ws-client.ts disable <device id>
+```
+
+Enable active device probing:
+
+```
+# From `mini-broker` directory
+ts-node src/ws-client.ts enable <device id>
+```
+
 # Checklist
 
 - [x] Implement at least two devices of any type (passive and/or active)
@@ -64,6 +92,6 @@ docker compose up
 - [x] Use TypeScript.
 - [x] Establish a secure connection between devices and the Mini-Connector.
 - [x] Validate device messages using any form of checksum.
-- [ ] The Mini-Connector accepts user-input to interact with the devices.
+- [x] The Mini-Connector accepts user-input to interact with the devices.
 - [ ] The Mini-Connector manages the process-lifecycle of the devices. It can start and stop
       devices dynamically.

@@ -1,60 +1,49 @@
-import Aedes, { AedesPublishPacket, Client, Subscription } from "aedes";
-import { createServer } from "tls";
-import { readFileSync } from "fs";
-import { authHandler } from "./authenticate";
-import { onDeviceDisconnected, onNewActiveDevice } from "./active-clients";
+import { WebSocketServer } from "ws";
+import { createServer, TlsOptions } from "tls";
 import { CONFIG } from "./config";
-import { unpackMessage } from "./message";
+import { mqttServer } from "./mqtt-server";
+import { IncomingMessage } from "http";
+import { readFileSync } from "fs";
+import { deviceEventsEmitter, EXTERNAL_COMMAND_EVENT, RESULT_EVENT } from "./active-clients";
 
-const aedes = Aedes();
-const options = {
+const options: TlsOptions = {
   key: readFileSync("./certificates/broker-private.pem"),
   cert: readFileSync("./certificates/broker-public.pem"),
 };
-const server = createServer(options, aedes.handle);
+const server = createServer(options, mqttServer.handle);
 
 server.listen(CONFIG.port, async () => {
-  aedes.authenticate = authHandler;
   console.debug(`Server started. Port: ${CONFIG.port}`);
 });
 
-aedes.on("client", async (client: Client) => {
-  console.log(`Connected: ${client.id}`);
-});
 
-// fired when a message is published
-aedes.on("publish", async (packet: AedesPublishPacket, client: Client) => {
-  if (!client) {
-    // Ignore broker own messages
-    console.debug("...", packet.topic);
-    return;
-  }
+const wss = new WebSocketServer({ port: CONFIG.ws_port });
 
-  let data = unpackMessage(packet.payload);
-  console.log("On publish", client.id, "Payload", data, "Topic", packet.topic);
+wss.on("connection", (ws, request: IncomingMessage) => {
+  console.debug("Connected ws client");
 
-  if (packet.topic === "clients") {
-    const isPassive = data?.isPassive;
-    console.log("New client", isPassive, data);
-    if (typeof isPassive === "boolean" && !isPassive) {
-      onNewActiveDevice(aedes, client);
+  ws.on("message", data => {
+    try {
+      const parsedData = JSON.parse(data.toString());
+      console.info("Received ws message:", parsedData);
+      deviceEventsEmitter.emit(EXTERNAL_COMMAND_EVENT, mqttServer, parsedData);
+    } catch (e) {
+      console.debug(e);
+
+      const errorString = (e instanceof Error)
+        ? e.toString()
+        : (typeof e === "string" || e instanceof String)
+          ? e : "Unknown error";
+
+      ws.send(JSON.stringify(errorString));
     }
-  }
-});
+  });
 
-aedes.on("clientDisconnect", async (client: Client) => {
-  console.log(`Disconnected: ${client.id}`);
-  onDeviceDisconnected(client.id);
-});
+  deviceEventsEmitter.on(RESULT_EVENT, (result) => {
+    ws.send(JSON.stringify(result));
+  });
 
-aedes.on("clientError", async (client: Client, error: Error) => {
-  console.error("Error", client?.id, error.toString());
-});
-
-aedes.on("subscribe", async (subscriptions: Subscription[], client: Client) => {
-  console.log("Subscribe", client?.id, subscriptions);
-});
-
-aedes.on("unsubscribe", async (unsubscriptions: string[], client: Client) => {
-  console.log("Unsubscribe", client?.id, unsubscriptions);
+  ws.on("close", (code, reason) => {
+    console.debug("Closed ws:", code, reason.toString());
+  });
 });
