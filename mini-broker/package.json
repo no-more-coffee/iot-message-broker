@@ -1,4 +1,11 @@
 {
+  "name": "mini-broker",
+  "version": "1.0.0",
+  "description": "MQTT message broker",
+  "main": "src/server.ts",
+  "keywords": ["iot", "mqtt", "websocket"],
+  "author": "Vladimir Okonechnikov",
+  "license": "ISC",
   "dependencies": {
     "dotenv": "^16.0.1",
     "aedes": "^0.47.0"

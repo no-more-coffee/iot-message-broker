@@ -1,4 +1,11 @@
 {
+  "name": "device",
+  "version": "1.0.0",
+  "description": "MQTT message client",
+  "main": "src/client.ts",
+  "keywords": ["iot", "mqtt"],
+  "author": "Vladimir Okonechnikov",
+  "license": "ISC",
   "dependencies": {
     "dotenv": "^16.0.1",
     "mqtt": "^4.3.7"
