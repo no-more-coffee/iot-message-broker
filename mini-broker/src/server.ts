@@ -12,7 +12,7 @@ const options: TlsOptions = {
 };
 const server = createServer(options, mqttServer.handle);
 
-server.listen(CONFIG.port, async () => {
+server.listen(CONFIG.port, () => {
   console.debug(`Server started. Port: ${CONFIG.port}`);
 });
 
