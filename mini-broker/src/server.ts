@@ -7,8 +7,16 @@ import { readFileSync } from "fs";
 import { deviceEventsEmitter, EXTERNAL_COMMAND_EVENT, RESULT_EVENT } from "./active-clients";
 
 const options: TlsOptions = {
-  key: readFileSync("./certificates/broker-private.pem"),
-  cert: readFileSync("./certificates/broker-public.pem"),
+  key: readFileSync("./certificates/server-key.pem"),
+  cert: readFileSync("./certificates/server-cert.pem"),
+
+  // This is necessary only if using client certificate authentication.
+  requestCert: true,
+
+  // This is necessary only if the client uses a self-signed certificate.
+  ca: [readFileSync("./certificates/client-cert.pem")],
+
+  rejectUnauthorized: true,
 };
 const server = createServer(options, mqttServer.handle);
 

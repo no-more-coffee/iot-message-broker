@@ -4,14 +4,27 @@ import { PassiveDevice } from "./passive-device";
 import { BaseDevice } from "./base-device";
 import { CONFIG } from "./config";
 import { packMessage } from "./message";
+import { readFileSync } from "fs";
+import { IClientOptions } from "mqtt/types/lib/client";
 
 const device: BaseDevice = CONFIG.is_passive ? new PassiveDevice() : new ActiveDevice();
 
 let client: MqttClient = mqttConnect({
   ...CONFIG,
   protocol: "mqtts",
-  rejectUnauthorized: false,
-});
+
+  // Necessary only if the server requires client certificate authentication.
+  key: readFileSync("./certificates/client-key.pem"),
+  cert: readFileSync("./certificates/client-cert.pem"),
+
+  // Necessary only if the server uses a self-signed certificate.
+  ca: [readFileSync("./certificates/server-cert.pem")],
+
+  // Necessary only if the server's cert isn't for "localhost".
+  checkServerIdentity: () => null,
+
+  rejectUnauthorized: true,
+} as IClientOptions);
 
 client.on("connect", (packet: IConnackPacket) => {
   console.debug("Connected");
@@ -25,7 +38,7 @@ client.on("connect", (packet: IConnackPacket) => {
         "clients",
         packMessage({
           isPassive: device.isPassive,
-        })
+        }),
       );
     }
   });
